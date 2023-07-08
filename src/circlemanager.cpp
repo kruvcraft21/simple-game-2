@@ -14,7 +14,8 @@ CircleManager::CircleManager()
 
     uniform_int_distribution<int> color(0, 7);
 
-    uniform_real_distribution<float> sizeCircle(MIN_SIZE_CIRCLE, MAX_SIZE_CIRCLE);
+    uniform_real_distribution<float> sizeCircle(MIN_SIZE_CIRCLE,
+                                                MAX_SIZE_CIRCLE);
 
     uniform_real_distribution<float> speedGenerator(MIN_SPEED, MAX_SPEED);
 
