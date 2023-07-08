@@ -1,6 +1,6 @@
 #include "circle.hpp"
 
-Circle::Circle(const sf::Color &color,const sf::Vector2f& pos, const sf::Vector2f& dir, float radius)
+Circle::Circle(const sf::Color &color,const sf::Vector2f& pos, const sf::Vector2f& dir, float speed, float radius) : speed(speed)
 {
     circle.setFillColor(color);
     circle.setOrigin(radius, radius);

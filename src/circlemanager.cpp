@@ -1,12 +1,52 @@
 #include "circlemanager.hpp"
+#include <iostream>
+
+sf::Vector2f getRandomDirection(mt19937 engine)
+{
+    uniform_real_distribution<float> dist(MIN_DIRECTION, MAX_DIRECTION);
+    return {dist(engine), dist(engine)};
+}
 
 CircleManager::CircleManager()
 {
-    circles.push_back(Circle(sf::Color::Red, {400, 400}, {867, 525}));
-    circles.push_back(Circle(sf::Color::Yellow, {250, 670}, {235, 55}));
-    circles.push_back(Circle(sf::Color::Blue, {479, 235}, {124, 441}));
-    circles.push_back(Circle(sf::Color::Green, {135, 584}, {480, 155}));
-    circles.push_back(Circle(sf::Color::White, {600, 225}, {-433, 234}));
+    const unsigned seed = unsigned(std::time(nullptr));
+    engine.seed(seed);
+
+    uniform_int_distribution<int> color(0, 7);
+
+    uniform_real_distribution<float> sizeCircle(MIN_SIZE_CIRCLE, MAX_SIZE_CIRCLE);
+
+    uniform_real_distribution<float> speedGenerator(MIN_SPEED, MAX_SPEED);
+
+    sf::Color c1((colors[color(engine)] + colors[color(engine)]) / 2);
+    circles.push_back(Circle(c1, {400, 400},
+                             getRandomDirection(engine),
+                             speedGenerator(engine),
+                             sizeCircle(engine)));
+
+    sf::Color c2((colors[color(engine)] + colors[color(engine)]) / 2);
+    circles.push_back(Circle(c2, {250, 670},
+                             getRandomDirection(engine),
+                             speedGenerator(engine),
+                             sizeCircle(engine)));
+
+    sf::Color c3((colors[color(engine)] + colors[color(engine)]) / 2);
+    circles.push_back(Circle(c3, {479, 235},
+                             getRandomDirection(engine),
+                             speedGenerator(engine),
+                             sizeCircle(engine)));
+
+    sf::Color c4((colors[color(engine)] + colors[color(engine)]) / 2);
+    circles.push_back(Circle(c4, {135, 584},
+                             getRandomDirection(engine),
+                             speedGenerator(engine),
+                             sizeCircle(engine)));
+
+    sf::Color c5((colors[color(engine)] + colors[color(engine)]) / 2);
+    circles.push_back(Circle(c5, {600, 225},
+                             getRandomDirection(engine),
+                             speedGenerator(engine),
+                             sizeCircle(engine)));
 }
 
 float dot(sf::Vector2f &v1, sf::Vector2f &v2)
@@ -19,7 +59,7 @@ sf::Vector2f mulVector(const sf::Vector2f &v1, const sf::Vector2f &v2)
     return {v1.x * v2.x, v1.y * v2.y};
 }
 
-// Нагло взято отсюда: 
+// Нагло взято отсюда:
 // https://www.jeffreythompson.org/collision-detection/circle-circle.php
 bool isCollisionCircles(const auto &circle1, const auto &circle2)
 {

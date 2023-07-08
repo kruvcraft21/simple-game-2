@@ -8,10 +8,10 @@ class Circle final
 private:
     sf::CircleShape circle;
     sf::Vector2f dir = { 1, 0};
-    float speed = 200.f;
+    float speed;
     Circle() = delete;
 public:
-    Circle(const sf::Color &color,const sf::Vector2f& pos, const sf::Vector2f& dir, float radius = 50.f);
+    Circle(const sf::Color &color,const sf::Vector2f& pos, const sf::Vector2f& dir, float speed = 200.f, float radius = 50.f);
     const sf::Vector2f& getPosition();
     void move(const sf::Vector2f& delta);
     void draw(sf::RenderWindow& window);
