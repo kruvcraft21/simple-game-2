@@ -1,53 +1,56 @@
 #include "circlemanager.hpp"
 #include <iostream>
 
-sf::Vector2f getRandomDirection(mt19937 engine)
+sf::Vector2f CircleManager::getRandomDirection()
 {
     uniform_real_distribution<float> dist(MIN_DIRECTION, MAX_DIRECTION);
     return {dist(engine), dist(engine)};
 }
 
-CircleManager::CircleManager()
+float CircleManager::getRandomRadius()
 {
-    const unsigned seed = unsigned(std::time(nullptr));
-    engine.seed(seed);
+    return randomRadius(engine);
+}
 
-    uniform_int_distribution<int> color(0, 7);
+float CircleManager::getRandomSpeed()
+{
+    return randomSpeed(engine);
+}
 
-    uniform_real_distribution<float> sizeCircle(MIN_SIZE_CIRCLE,
-                                                MAX_SIZE_CIRCLE);
+sf::Color CircleManager::getRandomColor()
+{
+    return sf::Color((colors[randomColor(engine)] + colors[randomColor(engine)]) / 2);
+}
 
-    uniform_real_distribution<float> speedGenerator(MIN_SPEED, MAX_SPEED);
+CircleManager::CircleManager() : engine(unsigned(std::time(nullptr))),
+                                 randomRadius(MIN_SIZE_CIRCLE, MAX_SIZE_CIRCLE),
+                                 randomSpeed(MIN_SPEED, MAX_SPEED),
+                                 randomColor(0, 7)
+{
+    circles.push_back(Circle(getRandomColor(), {400, 400},
+                             getRandomDirection(),
+                             getRandomSpeed(),
+                             getRandomRadius()));
 
-    sf::Color c1((colors[color(engine)] + colors[color(engine)]) / 2);
-    circles.push_back(Circle(c1, {400, 400},
-                             getRandomDirection(engine),
-                             speedGenerator(engine),
-                             sizeCircle(engine)));
+    circles.push_back(Circle(getRandomColor(), {250, 670},
+                             getRandomDirection(),
+                             getRandomSpeed(),
+                             getRandomRadius()));
 
-    sf::Color c2((colors[color(engine)] + colors[color(engine)]) / 2);
-    circles.push_back(Circle(c2, {250, 670},
-                             getRandomDirection(engine),
-                             speedGenerator(engine),
-                             sizeCircle(engine)));
+    circles.push_back(Circle(getRandomColor(), {479, 235},
+                             getRandomDirection(),
+                             getRandomSpeed(),
+                             getRandomRadius()));
 
-    sf::Color c3((colors[color(engine)] + colors[color(engine)]) / 2);
-    circles.push_back(Circle(c3, {479, 235},
-                             getRandomDirection(engine),
-                             speedGenerator(engine),
-                             sizeCircle(engine)));
+    circles.push_back(Circle(getRandomColor(), {135, 584},
+                             getRandomDirection(),
+                             getRandomSpeed(),
+                             getRandomRadius()));
 
-    sf::Color c4((colors[color(engine)] + colors[color(engine)]) / 2);
-    circles.push_back(Circle(c4, {135, 584},
-                             getRandomDirection(engine),
-                             speedGenerator(engine),
-                             sizeCircle(engine)));
-
-    sf::Color c5((colors[color(engine)] + colors[color(engine)]) / 2);
-    circles.push_back(Circle(c5, {600, 225},
-                             getRandomDirection(engine),
-                             speedGenerator(engine),
-                             sizeCircle(engine)));
+    circles.push_back(Circle(getRandomColor(), {600, 225},
+                             getRandomDirection(),
+                             getRandomSpeed(),
+                             getRandomRadius()));
 }
 
 float dot(sf::Vector2f &v1, sf::Vector2f &v2)
@@ -60,6 +63,21 @@ sf::Vector2f mulVector(const sf::Vector2f &v1, const sf::Vector2f &v2)
     return {v1.x * v2.x, v1.y * v2.y};
 }
 
+bool isCollisionCircles(const sf::Vector2f &pos1, const sf::Vector2f &pos2, float radius1, float radius2)
+{
+    float distX = pos1.x - pos2.x;
+    float distY = pos1.y - pos2.y;
+    float distance = sqrt((distX * distX) + (distY * distY));
+
+    // if the distance is less than the sum of the circle's
+    // radii, the circles are touching!
+    if (distance <= radius1 + radius2)
+    {
+        return true;
+    }
+    return false;
+}
+
 // Нагло взято отсюда:
 // https://www.jeffreythompson.org/collision-detection/circle-circle.php
 bool isCollisionCircles(const auto &circle1, const auto &circle2)
@@ -68,22 +86,13 @@ bool isCollisionCircles(const auto &circle1, const auto &circle2)
     // use the Pythagorean Theorem to compute the distance
     const sf::Vector2f &pos1 = circle1->getPosition();
     const sf::Vector2f &pos2 = circle2->getPosition();
-    float distX = pos1.x - pos2.x;
-    float distY = pos1.y - pos2.y;
-    float distance = sqrt((distX * distX) + (distY * distY));
-
-    // if the distance is less than the sum of the circle's
-    // radii, the circles are touching!
-    if (distance <= circle1->getRadius() + circle2->getRadius())
-    {
-        return true;
-    }
-    return false;
+    return isCollisionCircles(pos1, pos2, circle1->getRadius(), circle2->getRadius());
 }
 
 sf::Vector2f getElasticCollision(const sf::Vector2f &dir, sf::Vector2f &deltaDir, sf::Vector2f &deltaPos)
 {
-    return dir - (mulVector(dot(deltaDir, deltaPos) * (mulVector(deltaPos, deltaPos) * powf(1.f, -1)), deltaPos));
+    const float denOne = powf(1.f, -1);
+    return dir - (mulVector(dot(deltaDir, deltaPos) * (mulVector(deltaPos, deltaPos) * denOne), deltaPos));
 }
 
 void CircleManager::checkElasticCollisionCircles(const auto &circle1)
@@ -132,5 +141,35 @@ void CircleManager::update(sf::RenderWindow &window)
                 circle->DirMulDir({1, -1});
             }
         }
+
+        tryAddCircle();
     }
+}
+
+void CircleManager::tryAddCircle()
+{
+    while (!mouseClicks.empty())
+    {
+        auto &pos = mouseClicks.front();
+        float radius = getRandomRadius();
+
+        bool isCollision = false;
+
+        for (auto &circle : circles)
+        {
+            isCollision |= isCollisionCircles(pos, circle.getPosition(), radius, circle.getRadius());
+        }
+
+        if (!isCollision)
+        {
+            circles.push_back(Circle(getRandomColor(), pos, getRandomDirection(), getRandomSpeed(), radius));
+        }
+
+        mouseClicks.pop();
+    }
+}
+
+void CircleManager::addClickPos(int x, int y)
+{
+    mouseClicks.push({static_cast<float>(x), static_cast<float>(y)});
 }
