@@ -49,3 +49,9 @@ void Circle::setDir(const sf::Vector2f& newDir)
     const float magnituda = sqrt(newDir.x * newDir.x + newDir.y * newDir.y);
     this->dir = newDir / magnituda;
 }
+
+bool Circle::isAlive(float deltaTime)
+{
+    timeLive -= deltaTime;
+    return timeLive > 0;
+}

@@ -63,6 +63,8 @@ sf::Vector2f mulVector(const sf::Vector2f &v1, const sf::Vector2f &v2)
     return {v1.x * v2.x, v1.y * v2.y};
 }
 
+// Нагло взято отсюда:
+// https://www.jeffreythompson.org/collision-detection/circle-circle.php
 bool isCollisionCircles(const sf::Vector2f &pos1, const sf::Vector2f &pos2, float radius1, float radius2)
 {
     float distX = pos1.x - pos2.x;
@@ -78,8 +80,6 @@ bool isCollisionCircles(const sf::Vector2f &pos1, const sf::Vector2f &pos2, floa
     return false;
 }
 
-// Нагло взято отсюда:
-// https://www.jeffreythompson.org/collision-detection/circle-circle.php
 bool isCollisionCircles(const auto &circle1, const auto &circle2)
 {
     // get distance between the circle's centers
@@ -122,7 +122,7 @@ void CircleManager::update(sf::RenderWindow &window)
     const float deltaTime = clock.restart().asSeconds();
     if (deltaTime < 0.1f)
     {
-        for (auto circle = circles.begin(); circle != circles.end(); circle++)
+        for (auto circle = circles.begin(); circle != circles.end();)
         {
             auto &pos = circle->getPosition();
             const float radius = circle->getRadius();
@@ -139,6 +139,15 @@ void CircleManager::update(sf::RenderWindow &window)
             if (pos.y + radius >= WINDOW_HEIGHT || pos.y - radius < 0)
             {
                 circle->DirMulDir({1, -1});
+            }
+
+            if (circle->isAlive(deltaTime))
+            {
+                circle++;
+            }
+            else
+            {
+                circle = circles.erase(circle);
             }
         }
 
