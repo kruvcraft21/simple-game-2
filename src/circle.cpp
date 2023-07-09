@@ -1,6 +1,6 @@
 #include "circle.hpp"
 
-Circle::Circle(const sf::Color &color,const sf::Vector2f& pos, const sf::Vector2f& dir, float speed, float radius) : speed(speed)
+Circle::Circle(const sf::Color &color, const sf::Vector2f &pos, const sf::Vector2f &dir, float speed, float radius) : speed(speed)
 {
     circle.setFillColor(color);
     circle.setOrigin(radius, radius);
@@ -9,27 +9,27 @@ Circle::Circle(const sf::Color &color,const sf::Vector2f& pos, const sf::Vector2
     setDir(dir);
 }
 
-const sf::Vector2f& Circle::getPosition()
+const sf::Vector2f &Circle::getPosition()
 {
     return circle.getPosition();
 }
 
-void Circle::draw(sf::RenderWindow& window)
+void Circle::draw(sf::RenderWindow &window)
 {
     window.draw(circle);
 }
 
-void Circle::move(const sf::Vector2f& delta)
+void Circle::move(const sf::Vector2f &delta)
 {
     circle.move(delta * speed);
 }
 
-void Circle::DirMulDir(const sf::Vector2f& newDir)
+void Circle::DirMulDir(const sf::Vector2f &newDir)
 {
     dir = {dir.x * newDir.x, dir.y * newDir.y};
 }
 
-sf::Vector2f& Circle::getDir()
+sf::Vector2f &Circle::getDir()
 {
     return dir;
 }
@@ -44,7 +44,7 @@ sf::FloatRect Circle::getGlobalBounds()
     return circle.getGlobalBounds();
 }
 
-void Circle::setDir(const sf::Vector2f& newDir)
+void Circle::setDir(const sf::Vector2f &newDir)
 {
     const float magnituda = sqrt(newDir.x * newDir.x + newDir.y * newDir.y);
     this->dir = newDir / magnituda;
