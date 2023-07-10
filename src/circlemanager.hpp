@@ -1,6 +1,7 @@
 #pragma once
 
 #include "circle.hpp"
+#include "mathuntils.hpp"
 #include "SFML/System.hpp"
 #include <vector>
 #include <random>
@@ -8,6 +9,8 @@
 #include <queue>
 
 using namespace std;
+
+constexpr float TOLERANCE_DELTA_TIME = 0.1f;
 
 constexpr unsigned int WINDOW_HEIGHT = 800;
 constexpr unsigned int WINDOW_WIDTH = 800;
@@ -46,6 +49,7 @@ private:
 private:
     CircleManager();
     void checkElasticCollisionCircles(const auto &circle1);
+    void checkWallCollision(const auto &circle);
     void tryAddCircle();
     float getRandomRadius();
     float getRandomSpeed();

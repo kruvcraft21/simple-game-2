@@ -1,12 +1,13 @@
 #include "circle.hpp"
 
-Circle::Circle(const sf::Color &color, const sf::Vector2f &pos, const sf::Vector2f &dir, float speed, float radius) : speed(speed)
+Circle::Circle(const sf::Color &color, const sf::Vector2f &pos, const sf::Vector2f &dir, float speed, float radius)
 {
     circle.setFillColor(color);
     circle.setOrigin(radius, radius);
     circle.setPosition(pos);
     circle.setRadius(radius);
-    setDir(dir);
+    const float magnituda = sqrt(dir.x * dir.x + dir.y * dir.y);
+    setDir((dir / magnituda) * speed);
 }
 
 const sf::Vector2f &Circle::getPosition()
@@ -26,12 +27,7 @@ void Circle::draw(sf::RenderWindow &window)
 
 void Circle::move(const sf::Vector2f &delta)
 {
-    circle.move(delta * speed);
-}
-
-void Circle::DirMulDir(const sf::Vector2f &newDir)
-{
-    dir = {dir.x * newDir.x, dir.y * newDir.y};
+    circle.move(delta);
 }
 
 sf::Vector2f &Circle::getDir()
@@ -51,8 +47,8 @@ sf::FloatRect Circle::getGlobalBounds()
 
 void Circle::setDir(const sf::Vector2f &newDir)
 {
-    const float magnituda = sqrt(newDir.x * newDir.x + newDir.y * newDir.y);
-    this->dir = newDir / magnituda;
+    assert(!(newDir.x == 0 && newDir.y == 0));
+    this->dir = newDir;
 }
 
 bool Circle::isAlive(float deltaTime)

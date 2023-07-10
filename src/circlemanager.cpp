@@ -1,5 +1,4 @@
 #include "circlemanager.hpp"
-#include <iostream>
 
 sf::Vector2f CircleManager::getRandomDirection()
 {
@@ -53,23 +52,6 @@ CircleManager::CircleManager() : engine(unsigned(std::time(nullptr))),
                              getRandomRadius()));
 }
 
-float dot(sf::Vector2f &v1, sf::Vector2f &v2)
-{
-    return v1.x * v2.x + v1.y * v2.y;
-}
-
-sf::Vector2f mulVector(const sf::Vector2f &v1, const sf::Vector2f &v2)
-{
-    return {v1.x * v2.x, v1.y * v2.y};
-}
-
-sf::Vector2f delVector(float v1, const sf::Vector2f &v2)
-{
-    if (v2.x == 0 || v2.y == 0)
-        return {0, 0};
-    return {v1 / v2.x, v1 / v2.y};
-}
-
 // Нагло взято отсюда:
 // https://www.jeffreythompson.org/collision-detection/circle-circle.php
 bool isCollisionCircles(const sf::Vector2f &pos1, const sf::Vector2f &pos2, float radius1, float radius2)
@@ -113,7 +95,7 @@ bool isCollisionCircles(const auto &circle1, const auto &circle2, sf::Vector2f &
 
 sf::Vector2f getElasticCollision(const sf::Vector2f &dir, sf::Vector2f &deltaDir, sf::Vector2f &deltaPos)
 {
-    return dir - (mulVector(delVector(dot(deltaDir, deltaPos), (mulVector(deltaPos, deltaPos))), deltaPos));
+    return dir - ((mu::dot(deltaDir, deltaPos) / (mu::dot(deltaPos, deltaPos))) * deltaPos);
 }
 
 void CircleManager::checkElasticCollisionCircles(const auto &circle1)
@@ -132,6 +114,11 @@ void CircleManager::checkElasticCollisionCircles(const auto &circle1)
             auto deltaPos1 = pos1 - pos2;
             auto deltaPos2 = pos2 - pos1;
 
+#ifndef NDEBUG
+            float mag1old = sqrt(mu::dot(dir1, dir1));
+            float mag2old = sqrt(mu::dot(dir2, dir2));
+            float summagold = mag1old + mag2old;
+#endif
             // Устанавливаем новый вектор движения
             circle1->setDir(getElasticCollision(dir1, deltaDir1, deltaPos1));
             circle2->setDir(getElasticCollision(dir2, deltaDir2, deltaPos2));
@@ -139,44 +126,59 @@ void CircleManager::checkElasticCollisionCircles(const auto &circle1)
             // Устанавливаем позицию соприкосновения, чтобы шары не слипались
             circle1->setPosition(pos1.x + vectorDist.x, pos1.y + vectorDist.y);
             circle2->setPosition(pos2.x - vectorDist.x, pos2.y - vectorDist.y);
+
+#ifndef NDEBUG
+            float mag1new = sqrt(mu::dot(dir1, dir1));
+            float mag2new = sqrt(mu::dot(dir2, dir2));
+            float summagnew = mag1new + mag2new;
+
+            constexpr float tolerance = 0.5f;
+            assert(abs(summagold - summagnew) / summagnew < tolerance);
+#endif
         }
+    }
+}
+
+void CircleManager::checkWallCollision(const auto &circle)
+{
+    const auto &pos = circle->getPosition();
+    const float radius = circle->getRadius();
+    auto &dir = circle->getDir();
+
+    if (pos.x + radius >= WINDOW_WIDTH)
+    {
+        dir.x *= -1;
+        circle->setPosition(WINDOW_WIDTH - radius, pos.y);
+    }
+    if (pos.x - radius < 0)
+    {
+        dir.x *= -1;
+        circle->setPosition(radius, pos.y);
+    }
+
+    if (pos.y + radius >= WINDOW_HEIGHT)
+    {
+        dir.y *= -1;
+        circle->setPosition(pos.x, WINDOW_HEIGHT - radius);
+    }
+    if (pos.y - radius < 0)
+    {
+        dir.y *= -1;
+        circle->setPosition(pos.x, radius);
     }
 }
 
 void CircleManager::update(sf::RenderWindow &window)
 {
     const float deltaTime = clock.restart().asSeconds();
-    if (deltaTime < 0.1f)
+    if (deltaTime < TOLERANCE_DELTA_TIME)
     {
         for (auto circle = circles.begin(); circle != circles.end();)
         {
-            auto &pos = circle->getPosition();
-            const float radius = circle->getRadius();
             auto &dir = circle->getDir();
 
             checkElasticCollisionCircles(circle);
-
-            if (pos.x + radius >= WINDOW_WIDTH)
-            {
-                dir.x *= -1;
-                circle->setPosition(WINDOW_WIDTH - radius, pos.y);
-            }
-            if (pos.x - radius < 0)
-            {
-                dir.x *= -1;
-                circle->setPosition(radius, pos.y);
-            }
-
-            if (pos.y + radius >= WINDOW_HEIGHT)
-            {
-                dir.y *= -1;
-                circle->setPosition(pos.x, WINDOW_HEIGHT - radius);
-            }
-            if (pos.y - radius < 0)
-            {
-                dir.y *= -1;
-                circle->setPosition(pos.x, radius);
-            }
+            checkWallCollision(circle);
 
             circle->move(dir * deltaTime);
             circle->draw(window);

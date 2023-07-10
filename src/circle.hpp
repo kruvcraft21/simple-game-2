@@ -2,13 +2,13 @@
 
 #include "SFML/Graphics.hpp"
 #include <math.h>
+#include <assert.h>
 
 class Circle final
 {
 private:
     sf::CircleShape circle;
     sf::Vector2f dir = {1, 0};
-    float speed;
     float timeLive = 10.f;
     Circle() = delete;
 
@@ -18,7 +18,6 @@ public:
     void setPosition(float x, float y);
     void move(const sf::Vector2f &delta);
     void draw(sf::RenderWindow &window);
-    void DirMulDir(const sf::Vector2f &delta);
     sf::Vector2f &getDir();
     void setDir(const sf::Vector2f &newDir);
     sf::FloatRect getGlobalBounds();
