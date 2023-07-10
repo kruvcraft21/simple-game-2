@@ -63,6 +63,13 @@ sf::Vector2f mulVector(const sf::Vector2f &v1, const sf::Vector2f &v2)
     return {v1.x * v2.x, v1.y * v2.y};
 }
 
+sf::Vector2f delVector(float v1, const sf::Vector2f &v2)
+{
+    if (v2.x == 0 || v2.y == 0)
+        return {0, 0};
+    return {v1 / v2.x, v1 / v2.y};
+}
+
 // Нагло взято отсюда:
 // https://www.jeffreythompson.org/collision-detection/circle-circle.php
 bool isCollisionCircles(const sf::Vector2f &pos1, const sf::Vector2f &pos2, float radius1, float radius2)
@@ -73,33 +80,48 @@ bool isCollisionCircles(const sf::Vector2f &pos1, const sf::Vector2f &pos2, floa
 
     // if the distance is less than the sum of the circle's
     // radii, the circles are touching!
-    if (distance <= radius1 + radius2)
+    if (distance < radius1 + radius2)
     {
         return true;
     }
     return false;
 }
 
-bool isCollisionCircles(const auto &circle1, const auto &circle2)
+bool isCollisionCircles(const auto &circle1, const auto &circle2, sf::Vector2f &vectorDist)
 {
     // get distance between the circle's centers
     // use the Pythagorean Theorem to compute the distance
     const sf::Vector2f &pos1 = circle1->getPosition();
     const sf::Vector2f &pos2 = circle2->getPosition();
-    return isCollisionCircles(pos1, pos2, circle1->getRadius(), circle2->getRadius());
+    float radius1 = circle1->getRadius();
+    float radius2 = circle2->getRadius();
+    float distX = pos1.x - pos2.x;
+    float distY = pos1.y - pos2.y;
+    float distance = sqrt((distX * distX) + (distY * distY));
+
+    // if the distance is less than the sum of the circle's
+    // radii, the circles are touching!
+    if (distance < radius1 + radius2)
+    {
+        float dist = (radius1 + radius2) - distance;
+        vectorDist.x = (distX / distance) * dist;
+        vectorDist.y = (distY / distance) * dist;
+        return true;
+    }
+    return false;
 }
 
 sf::Vector2f getElasticCollision(const sf::Vector2f &dir, sf::Vector2f &deltaDir, sf::Vector2f &deltaPos)
 {
-    const float denOne = powf(1.f, -1);
-    return dir - (mulVector(dot(deltaDir, deltaPos) * (mulVector(deltaPos, deltaPos) * denOne), deltaPos));
+    return dir - (mulVector(delVector(dot(deltaDir, deltaPos), (mulVector(deltaPos, deltaPos))), deltaPos));
 }
 
 void CircleManager::checkElasticCollisionCircles(const auto &circle1)
 {
+    sf::Vector2f vectorDist = {0, 0};
     for (auto circle2 = circle1 + 1; circle2 != circles.end(); circle2++)
     {
-        if (isCollisionCircles(circle1, circle2))
+        if (isCollisionCircles(circle1, circle2, vectorDist))
         {
             const auto &dir1 = circle1->getDir();
             const auto &dir2 = circle2->getDir();
@@ -110,9 +132,13 @@ void CircleManager::checkElasticCollisionCircles(const auto &circle1)
             auto deltaPos1 = pos1 - pos2;
             auto deltaPos2 = pos2 - pos1;
 
+            // Устанавливаем новый вектор движения
             circle1->setDir(getElasticCollision(dir1, deltaDir1, deltaPos1));
-
             circle2->setDir(getElasticCollision(dir2, deltaDir2, deltaPos2));
+
+            // Устанавливаем позицию соприкосновения, чтобы шары не слипались
+            circle1->setPosition(pos1.x + vectorDist.x, pos1.y + vectorDist.y);
+            circle2->setPosition(pos2.x - vectorDist.x, pos2.y - vectorDist.y);
         }
     }
 }
@@ -126,20 +152,34 @@ void CircleManager::update(sf::RenderWindow &window)
         {
             auto &pos = circle->getPosition();
             const float radius = circle->getRadius();
-            const auto &dir = circle->getDir();
-            circle->move(dir * deltaTime);
-            circle->draw(window);
+            auto &dir = circle->getDir();
 
             checkElasticCollisionCircles(circle);
 
-            if (pos.x + radius >= WINDOW_WIDTH || pos.x - radius < 0)
+            if (pos.x + radius >= WINDOW_WIDTH)
             {
-                circle->DirMulDir({-1, 1});
+                dir.x *= -1;
+                circle->setPosition(WINDOW_WIDTH - radius, pos.y);
             }
-            if (pos.y + radius >= WINDOW_HEIGHT || pos.y - radius < 0)
+            if (pos.x - radius < 0)
             {
-                circle->DirMulDir({1, -1});
+                dir.x *= -1;
+                circle->setPosition(radius, pos.y);
             }
+
+            if (pos.y + radius >= WINDOW_HEIGHT)
+            {
+                dir.y *= -1;
+                circle->setPosition(pos.x, WINDOW_HEIGHT - radius);
+            }
+            if (pos.y - radius < 0)
+            {
+                dir.y *= -1;
+                circle->setPosition(pos.x, radius);
+            }
+
+            circle->move(dir * deltaTime);
+            circle->draw(window);
 
             if (circle->isAlive(deltaTime))
             {

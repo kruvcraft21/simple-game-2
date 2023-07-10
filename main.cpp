@@ -41,7 +41,7 @@ int main(void *)
     {
 
         pollEvent(window, circles);
-        window.clear();
+        window.clear(sf::Color::White);
         circles.update(window);
         window.display();
     }

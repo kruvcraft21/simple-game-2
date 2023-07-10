@@ -14,6 +14,11 @@ const sf::Vector2f &Circle::getPosition()
     return circle.getPosition();
 }
 
+void Circle::setPosition(float x, float y)
+{
+    circle.setPosition(x, y);
+}
+
 void Circle::draw(sf::RenderWindow &window)
 {
     window.draw(circle);
