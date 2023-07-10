@@ -1,7 +1,7 @@
 #pragma once
 
 #include "circle.hpp"
-#include "mathuntils.hpp"
+#include "mathutils.hpp"
 #include "SFML/System.hpp"
 #include <vector>
 #include <random>

@@ -1,4 +1,4 @@
-#include "mathuntils.hpp"
+#include "mathutils.hpp"
 
 float mu::dot(const sf::Vector2f &v1, const sf::Vector2f &v2)
 {
