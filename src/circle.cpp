@@ -10,7 +10,7 @@ Circle::Circle(const sf::Color &color, const sf::Vector2f &pos, const sf::Vector
     setDir((dir / magnituda) * speed);
 }
 
-const sf::Vector2f &Circle::getPosition()
+const sf::Vector2f &Circle::getPosition() const
 {
     return circle.getPosition();
 }
@@ -35,14 +35,9 @@ sf::Vector2f &Circle::getDir()
     return dir;
 }
 
-const float Circle::getRadius()
+const float Circle::getRadius() const
 {
     return circle.getRadius();
-}
-
-sf::FloatRect Circle::getGlobalBounds()
-{
-    return circle.getGlobalBounds();
 }
 
 void Circle::setDir(const sf::Vector2f &newDir)

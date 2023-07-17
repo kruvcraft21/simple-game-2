@@ -14,14 +14,15 @@ private:
 
 public:
     Circle(const sf::Color &color, const sf::Vector2f &pos, const sf::Vector2f &dir, float speed = 200.f, float radius = 50.f);
-    const sf::Vector2f &getPosition();
+
+    const sf::Vector2f &getPosition() const;
+    const float getRadius() const;
+    sf::Vector2f &getDir();
+
     void setPosition(float x, float y);
+    void setDir(const sf::Vector2f &newDir);
+
     void move(const sf::Vector2f &delta);
     void draw(sf::RenderWindow &window);
-    sf::Vector2f &getDir();
-    void setDir(const sf::Vector2f &newDir);
-    sf::FloatRect getGlobalBounds();
-    const float getRadius();
     bool isAlive(float deltaTime);
-    void setTmpSpeed(float tmpSpeed);
 };
